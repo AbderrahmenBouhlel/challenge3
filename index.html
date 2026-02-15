@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intervention Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <h1 class="text-xl font-bold text-gray-900">Intervention Management System</h1>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <select id="roleSelect" class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                            <option value="admin">Admin View</option>
+                            <option value="technician">Technician View</option>
+                        </select>
+                        <select id="techSelect" class="hidden bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                            <option value="1">John Smith</option>
+                            <option value="2">Sarah Johnson</option>
+                            <option value="3">Mike Davis</option>
+                            <option value="4">Emily Brown</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-lg shadow p-4">
+                    <p class="text-sm text-gray-500">Total Interventions</p>
+                    <p id="statTotal" class="text-3xl font-bold text-gray-900">0</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <p class="text-sm text-gray-500">To Do</p>
+                    <p id="statTodo" class="text-3xl font-bold text-gray-600">0</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <p class="text-sm text-gray-500">In Progress</p>
+                    <p id="statInProgress" class="text-3xl font-bold text-blue-600">0</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <p class="text-sm text-gray-500">Done</p>
+                    <p id="statDone" class="text-3xl font-bold text-green-600">0</p>
+                </div>
+            </div>
+
+            <!-- Admin Panel -->
+            <div id="adminPanel" class="fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">All Interventions</h2>
+                    <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Create Intervention
+                    </button>
+                </div>
+                <div id="interventionsList" class="space-y-4"></div>
+            </div>
+
+            <!-- Technician Panel -->
+            <div id="technicianPanel" class="hidden fade-in">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">My Interventions</h2>
+                    <p id="techWelcome" class="text-gray-500">Welcome, Technician</p>
+                </div>
+                <div id="myInterventionsList" class="space-y-4"></div>
+            </div>
+        </main>
+
+        <!-- Create Intervention Modal -->
+        <div id="createModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div class="p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Create New Intervention</h3>
+                    <p class="text-sm text-gray-500 mb-4">Create a new intervention and assign it to a technician.</p>
+                    <form id="createForm" onsubmit="handleCreate(event)">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                <input type="text" id="newTitle" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter intervention title">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea id="newDescription" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter description"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Assign to Technician</label>
+                                <select id="newTechnician" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Select a technician</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 mt-6">
+                            <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">Create Intervention</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const technicians = [
+            { id: '1', name: 'John Smith', email: 'john@company.com' },
+            { id: '2', name: 'Sarah Johnson', email: 'sarah@company.com' },
+            { id: '3', name: 'Mike Davis', email: 'mike@company.com' },
+            { id: '4', name: 'Emily Brown', email: 'emily@company.com' },
+        ];
+
+        let interventions = [
+            {
+                id: '1',
+                title: 'Server Maintenance',
+                description: 'Perform routine maintenance on the main server cluster',
+                status: 'done',
+                technicianId: '1',
+                createdAt: new Date('2024-01-15'),
+                updatedAt: new Date('2024-01-16'),
+            },
+            {
+                id: '2',
+                title: 'Network Configuration',
+                description: 'Configure new network switches in Building B',
+                status: 'in-progress',
+                technicianId: '2',
+                createdAt: new Date('2024-01-18'),
+                updatedAt: new Date('2024-01-19'),
+            },
+            {
+                id: '3',
+                title: 'Software Update',
+                description: 'Update security patches on all workstations',
+                status: 'todo',
+                technicianId: '3',
+                createdAt: new Date('2024-01-20'),
+                updatedAt: new Date('2024-01-20'),
+            },
+        ];
+
+        const STATUS_CONFIG = {
+            'todo': { label: 'To Do', color: 'bg-gray-500', next: 'in-progress' },
+            'in-progress': { label: 'In Progress', color: 'bg-blue-500', next: 'done' },
+            'done': { label: 'Done', color: 'bg-green-500', next: null },
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            populateTechnicianSelect();
+            updateStats();
+            renderInterventions();
+            
+            document.getElementById('roleSelect').addEventListener('change', handleRoleChange);
+            document.getElementById('techSelect').addEventListener('change', handleTechChange);
+        });
+
+        function populateTechnicianSelect() {
+            const select = document.getElementById('newTechnician');
+            const techSelect = document.getElementById('techSelect');
+            
+            technicians.forEach(tech => {
+                const option1 = document.createElement('option');
+                option1.value = tech.id;
+                option1.textContent = tech.name;
+                select.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = tech.id;
+                option2.textContent = tech.name;
+                techSelect.appendChild(option2);
+            });
+        }
+
+        function handleRoleChange(e) {
+            const role = e.target.value;
+            const adminPanel = document.getElementById('adminPanel');
+            const technicianPanel = document.getElementById('technicianPanel');
+            const techSelect = document.getElementById('techSelect');
+            
+            if (role === 'admin') {
+                adminPanel.classList.remove('hidden');
+                technicianPanel.classList.add('hidden');
+                techSelect.classList.add('hidden');
+            } else {
+                adminPanel.classList.add('hidden');
+                technicianPanel.classList.remove('hidden');
+                techSelect.classList.remove('hidden');
+                updateTechWelcome();
+                renderMyInterventions();
+            }
+        }
+
+        function handleTechChange(e) {
+            updateTechWelcome();
+            renderMyInterventions();
+        }
+
+        function updateTechWelcome() {
+            const techId = document.getElementById('techSelect').value;
+            const tech = technicians.find(t => t.id === techId);
+            document.getElementById('techWelcome').textContent = `Welcome, ${tech?.name || 'Technician'}`;
+        }
+
+        function updateStats() {
+            document.getElementById('statTotal').textContent = interventions.length;
+            document.getElementById('statTodo').textContent = interventions.filter(i => i.status === 'todo').length;
+            document.getElementById('statInProgress').textContent = interventions.filter(i => i.status === 'in-progress').length;
+            document.getElementById('statDone').textContent = interventions.filter(i => i.status === 'done').length;
+        }
+
+        function renderInterventions() {
+            const container = document.getElementById('interventionsList');
+            container.innerHTML = '';
+            
+            if (interventions.length === 0) {
+                container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">No interventions created yet.</div>';
+                return;
+            }
+            
+            interventions.forEach(intervention => {
+                const tech = technicians.find(t => t.id === intervention.technicianId);
+                const statusConfig = STATUS_CONFIG[intervention.status];
+                
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-lg shadow p-6';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">${intervention.title}</h3>
+                            <p class="text-sm text-gray-500 mt-1">Assigned to: ${tech?.name || 'Unassigned'}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="${statusConfig.color} text-white text-xs font-medium px-2.5 py-0.5 rounded flex items-center gap-1">
+                                ${getStatusIcon(intervention.status)}
+                                ${statusConfig.label}
+                            </span>
+                            <button onclick="deleteIntervention('${intervention.id}')" class="text-red-500 hover:text-red-700 p-1">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-3">${intervention.description}</p>
+                    <div class="mt-3 text-xs text-gray-400">
+                        Created: ${intervention.createdAt.toLocaleDateString()} | Updated: ${intervention.updatedAt.toLocaleDateString()}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderMyInterventions() {
+            const container = document.getElementById('myInterventionsList');
+            const techId = document.getElementById('techSelect').value;
+            const myInterventions = interventions.filter(i => i.technicianId === techId);
+            
+            container.innerHTML = '';
+            
+            if (myInterventions.length === 0) {
+                container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">No interventions assigned to you.</div>';
+                return;
+            }
+            
+            myInterventions.forEach(intervention => {
+                const statusConfig = STATUS_CONFIG[intervention.status];
+                const canAdvance = statusConfig.next !== null;
+                
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-lg shadow p-6';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">${intervention.title}</h3>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Status: <span class="${statusConfig.color} text-white text-xs font-medium px-2.5 py-0.5 rounded inline-flex items-center gap-1">
+                                    ${getStatusIcon(intervention.status)}
+                                    ${statusConfig.label}
+                                </span>
+                            </p>
+                        </div>
+                        ${canAdvance ? `
+                            <button onclick="advanceStatus('${intervention.id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors">
+                                Move to ${STATUS_CONFIG[statusConfig.next].label}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        ` : ''}
+                    </div>
+                    <p class="text-sm text-gray-600 mt-3">${intervention.description}</p>
+                    <div class="mt-3 text-xs text-gray-400">
+                        Created: ${intervention.createdAt.toLocaleDateString()} | Updated: ${intervention.updatedAt.toLocaleDateString()}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function getStatusIcon(status) {
+            const icons = {
+                'todo': '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+                'in-progress': '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+                'done': '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>',
+            };
+            return icons[status];
+        }
+
+        function openModal() {
+            document.getElementById('createModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('createModal').classList.add('hidden');
+            document.getElementById('createForm').reset();
+        }
+
+        function handleCreate(e) {
+            e.preventDefault();
+            const title = document.getElementById('newTitle').value;
+            const description = document.getElementById('newDescription').value;
+            const technicianId = document.getElementById('newTechnician').value;
+            
+            const newIntervention = {
+                id: Math.random().toString(36).substr(2, 9),
+                title,
+                description,
+                status: 'todo',
+                technicianId,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+            
+            interventions.push(newIntervention);
+            closeModal();
+            updateStats();
+            renderInterventions();
+        }
+
+        function deleteIntervention(id) {
+            if (confirm('Are you sure you want to delete this intervention?')) {
+                interventions = interventions.filter(i => i.id !== id);
+                updateStats();
+                renderInterventions();
+            }
+        }
+
+        function advanceStatus(id) {
+            const intervention = interventions.find(i => i.id === id);
+            if (intervention) {
+                const nextStatus = STATUS_CONFIG[intervention.status].next;
+                if (nextStatus) {
+                    intervention.status = nextStatus;
+                    intervention.updatedAt = new Date();
+                    updateStats();
+                    renderMyInterventions();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
